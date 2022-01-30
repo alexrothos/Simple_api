@@ -1,11 +1,15 @@
-from distutils.log import debug
-from flask import Flask,redirect,url_for,render_template,request
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
+from config.config import Config
 
 
 app=Flask(__name__)
-from app.auth import routes
 
+app.config.from_object(Config)
 
-if __name__ == '__main__':
-    app.run()
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+from app import auth
