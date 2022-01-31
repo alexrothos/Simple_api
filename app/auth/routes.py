@@ -1,3 +1,4 @@
+from itsdangerous import json
 from app import app, db
 from flask import request, render_template, jsonify, url_for
 from app.models import User
@@ -18,23 +19,22 @@ def count(var):
     result = jsonify(data)
     return render_template('number.html', result, text= f"The given number is : {id} ")
 
-@app.route('/register', methods=['POST','PUT'])
+@app.route('/register', methods=['POST'])
 def register():
-    if request.method == 'PUT':
-        data = request.get_json()
-        return str(data)
     try:
         data = request.get_json()
     except Exception as e:
-        return "Fail 1", e
+        return jsonify({"error": e})
     if data:
-        username = data.get('username')
+        username = data['username']
         email = data.get('email')
-        password = User.password_hash(data.get('password'))
-        user = User(username=username, email=email, password=password)
+        password = data.get('password')
+        user = User(username=username, email=email, password_hash=password)
         try:
-            db.commit(user)
+            db.session.add(user)
+            db.session.commit()
         except Exception as e:
-            return "Fail 2", e
+            return "Fail 2"
+        return jsonify({"message":"Registration complete"})
     else:
-        return "Fail 3"
+        return jsonify({"message":"Something went wrong..."})
